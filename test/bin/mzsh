@@ -1,0 +1,112 @@
+#!/bin/bash
+#
+# Mock mzsh for mediationzone RA testing.
+#
+# State dir is read from ${MZ_HOME}/.test_state_dir (written by helpers.bash).
+# MZ_HOME is passed inline by the RA so it survives su - stripping the environment.
+#
+# Failure injection - write a count to the fail file:
+#   echo 2 > ${STATE_DIR}/mzone_fail_startup   # fail next 2 startup calls
+#   echo 1 > ${STATE_DIR}/mzone_fail_shutdown
+#
+# Slow injection (simulates timeout, one-shot):
+#   touch ${STATE_DIR}/mzone_slow_status
+#
+
+# MZ_HOME is set inline in the RA's su command - use it to find the state dir
+if [[ -f "${MZ_HOME}/.test_state_dir" ]]; then
+    STATE_DIR=$(cat "${MZ_HOME}/.test_state_dir")
+else
+    STATE_DIR="${MZONE_TEST_STATE_DIR:-/dev/shm}"
+fi
+
+action=""
+pico=""
+
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        startup|shutdown|status|kill) action="$1" ;;
+        -f|-q|-verbose)          true ;;
+        *)                       pico="$1" ;;
+    esac
+    shift
+done
+
+state_file="${STATE_DIR}/mzone_state_${pico}"
+fail_file="${STATE_DIR}/mzone_fail_${action}"
+slow_file="${STATE_DIR}/mzone_slow_${action}"
+error_file="${STATE_DIR}/mzone_error_${action}"
+
+if [[ -e "$slow_file" ]]; then
+    rm "$slow_file"
+    sleep 120
+    exit 2
+fi
+
+# persistent error injection - returns unexpected rc without consuming the file
+if [[ -e "$error_file" ]]; then
+    exit 3
+fi
+
+if [[ -e "$fail_file" ]]; then
+    content=$(cat "$fail_file" 2>/dev/null)
+    # fail file format: "count" or "count:rc" for custom exit code
+    if [[ "$content" =~ : ]]; then
+        count="${content%%:*}"
+        fail_rc="${content##*:}"
+    else
+        count="$content"
+        fail_rc=""
+    fi
+    count=$(( ${count:-1} - 1 ))
+    if [[ "$count" -le 0 ]]; then
+        rm "$fail_file"
+    else
+        echo "${count}${fail_rc:+:${fail_rc}}" > "$fail_file"
+    fi
+    case "$action" in
+        startup)  printf "Starting %s...FAILED\n" "$pico"; exit "${fail_rc:-1}" ;;
+        shutdown) printf "Shutting down %s...FAILED\n" "$pico"; exit "${fail_rc:-1}" ;;
+        status)   exit "${fail_rc:-2}" ;;
+        kill)     printf "Killing %s...FAILED\n" "$pico"; exit "${fail_rc:-2}" ;;
+    esac
+fi
+
+case "$action" in
+    startup)
+        printf "Starting %s..." "$pico"
+        echo "running" > "$state_file"
+        echo "done."
+        exit 0
+        ;;
+    shutdown)
+        printf "Shutting down %s..." "$pico"
+        echo "stopped" > "$state_file"
+        echo "done."
+        exit 0
+        ;;
+    status)
+        state=$( [[ -f "$state_file" ]] && cat "$state_file" || echo "stopped" )
+        if [[ "$state" == "running" ]]; then
+            echo "${pico} is running"
+            exit 0
+        else
+            echo "${pico} is not running"
+            exit 2
+        fi
+        ;;
+    kill)
+        if [[ -f "$state_file" ]]; then
+            rm "$state_file"
+            printf "Killing %s...done.\n" "$pico"
+            exit 0
+        else
+            printf "Killing %s...FAILED (not running)\n" "$pico"
+            exit 2
+        fi
+        ;;
+    *)
+        echo "mzsh: unknown action '$action'" >&2
+        exit 1
+        ;;
+esac

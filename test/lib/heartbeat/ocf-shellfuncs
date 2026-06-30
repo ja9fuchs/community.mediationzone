@@ -1,0 +1,35 @@
+# shellcheck shell=bash
+# Minimal OCF shellfuncs stub for unit testing.
+
+export OCF_SUCCESS=0
+export OCF_ERR_GENERIC=1
+export OCF_ERR_ARGS=2
+export OCF_ERR_UNIMPLEMENTED=3
+export OCF_ERR_PERM=4
+export OCF_ERR_INSTALLED=5
+export OCF_ERR_CONFIGURED=6
+export OCF_NOT_RUNNING=7
+
+__OCF_ACTION="$1"
+export __OCF_ACTION
+
+ocf_log() {
+    local level="$1"; shift
+    echo "[${level}] $*" >&2
+}
+
+ocf_is_root() {
+    true  # always pass in tests - root check is cluster infrastructure's concern
+}
+
+
+have_binary() {
+    [[ -x "$1" ]]
+}
+
+ocf_is_decimal() {
+    case "$1" in
+        ""|*[!0-9]*) false ;;
+        *)           true  ;;
+    esac
+}

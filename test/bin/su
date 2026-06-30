@@ -1,0 +1,9 @@
+#!/bin/bash
+# Test stub for su. Ignores user switching - runs the -c command as current user.
+# Allows mediationzone BATS tests to run without root.
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -c) shift; exec bash -c "$1" ;;
+        *)  shift ;;
+    esac
+done
