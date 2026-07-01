@@ -3,18 +3,18 @@
 # mediationzone
 #
 # Description: OCF resource agent for MediationZone by DigitalRoute.
-#              Manages a single pico process as an active/passive cluster resource.
+#              Manages a single pico process as a cluster resource.
 #
 # Copyright (c) 2026 Red Hat, Inc.
 # License:     GNU General Public License (GPL)
 #
 # OCF parameters:
-#   OCF_RESKEY_os_user      - Linux user to run mzsh as (default: mzadmin)
-#   OCF_RESKEY_mz_home      - MZ_HOME directory (default: /opt/mz)
-#   OCF_RESKEY_java_home    - JAVA_HOME directory (default: /usr/lib/jvm/java-17-openjdk)
-#   OCF_RESKEY_pico         - pico to manage: platform, ui, ec, or other (default: platform)
-#   OCF_RESKEY_pico_port    - web server port of the pico (default: 9000 for platform, 9001 for ui, 9090 for ec)
-#   OCF_RESKEY_mzsh_timeout - timeout in seconds for a single mzsh call (default: 30)
+#   OCF_RESKEY_os_user      - OS user to run mzsh as
+#   OCF_RESKEY_mz_home      - MZ_HOME directory
+#   OCF_RESKEY_java_home    - JAVA_HOME directory
+#   OCF_RESKEY_pico         - pico to manage: platform, ui, ec, or other
+#   OCF_RESKEY_pico_port    - web server port of the pico
+#   OCF_RESKEY_mzsh_timeout - timeout in seconds for a single mzsh call
 #
 # Resource start order:
 #   rsc_vip_platform -> rsc_platform -> other containers (ui, ec, ...)
