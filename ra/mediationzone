@@ -147,8 +147,7 @@ mediationzone_methods() {
 mediationzone_check() {
     timeout "$OCF_RESKEY_mzsh_timeout" \
         su - "$OCF_RESKEY_os_user" -c \
-        "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh status ${OCF_RESKEY_pico}" \
-        > /dev/null 2>&1
+        "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh status -q ${OCF_RESKEY_pico}"
     case $? in
         0) return "$OCF_SUCCESS" ;;
         2) return "$OCF_NOT_RUNNING" ;;
@@ -163,8 +162,7 @@ mediationzone_monitor() {
         attempt=$((attempt + 1))
         timeout "$OCF_RESKEY_mzsh_timeout" \
             su - "$OCF_RESKEY_os_user" -c \
-            "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh status ${OCF_RESKEY_pico}" \
-            > /dev/null 2>&1
+            "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh status -q ${OCF_RESKEY_pico}"
         rc=$?
         case $rc in
             0)   ocf_log debug "${OCF_RESKEY_pico} is running"
@@ -198,7 +196,7 @@ mediationzone_start() {
     ss -K state time-wait "( sport = :${OCF_RESKEY_pico_port} )" > /dev/null 2>&1 || true
     # -f forces start of a pico that is registered but unreachable (e.g. after a crash)
     su - "$OCF_RESKEY_os_user" -c \
-        "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f ${OCF_RESKEY_pico}"
+        "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f -q ${OCF_RESKEY_pico}"
     rc=$?
     # rc=104 is "failed critical" - mzsh startup is blocking so the JVM has already exited,
     # but kill for safety then clear TIME-WAIT before retrying
@@ -210,7 +208,7 @@ mediationzone_start() {
             > /dev/null 2>&1 || true
         ss -K state time-wait "( sport = :${OCF_RESKEY_pico_port} )" > /dev/null 2>&1 || true
         su - "$OCF_RESKEY_os_user" -c \
-            "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f ${OCF_RESKEY_pico}"
+            "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f -q ${OCF_RESKEY_pico}"
         rc=$?
     fi
 
@@ -226,7 +224,7 @@ mediationzone_stop() {
     ocf_log debug "${OCF_RESKEY_pico} stopping"
     timeout "$OCF_RESKEY_mzsh_timeout" \
         su - "$OCF_RESKEY_os_user" -c \
-        "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh shutdown ${OCF_RESKEY_pico}"
+        "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh shutdown -q ${OCF_RESKEY_pico}"
     rc=$?
     if [ $rc -eq 124 ]; then
         ocf_log err "mzsh shutdown ${OCF_RESKEY_pico} timed out, escalating to mzsh kill"
