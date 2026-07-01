@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.0] - 2026-07-01
+
+### Changed
+- `#!/bin/bash` → `#!/bin/sh`; replaced all `[[ ]]` with `[ ]`, `==` with `-eq`/`-ne`, and `(( attempt++ ))` with `attempt=$((attempt + 1))`
+- Renamed `call_rc` to `rc` throughout; consolidated monitor to a single `rc` variable, replacing nested `if` for rc=124 with a direct `case` arm
+- Dropped quotes on `$rc` in numeric comparisons (`[ $rc -eq 0 ]`) except where shellcheck requires them (loop variable not immediately preceded by assignment)
+- `pico_port` validation: `-eq 0` → `-le 0` to also reject negative values
+- Removed unused `notify` action from dispatch table
+- Demoted begin/end action logs and successful monitor log to `ocf_log debug`; these fired on every invocation and added noise at info level
+
 ## [0.3.1] - 2026-06-29
 
 ### Fixed

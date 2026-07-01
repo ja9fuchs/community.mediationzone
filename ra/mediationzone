@@ -163,10 +163,11 @@ mediationzone_monitor() {
         attempt=$((attempt + 1))
         timeout "$OCF_RESKEY_mzsh_timeout" \
             su - "$OCF_RESKEY_os_user" -c \
-            "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh status ${OCF_RESKEY_pico}"
+            "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh status ${OCF_RESKEY_pico}" \
+            > /dev/null 2>&1
         rc=$?
         case $rc in
-            0)   ocf_log info "mediationzone: ${OCF_RESKEY_pico} is running"
+            0)   ocf_log debug "mediationzone: ${OCF_RESKEY_pico} is running"
                  return "$OCF_SUCCESS" ;;
             2)   ocf_log info "mediationzone: ${OCF_RESKEY_pico} is not running (attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
             124) ocf_log err "mediationzone: ${OCF_RESKEY_pico} status timed out, not retrying"
@@ -182,7 +183,7 @@ mediationzone_start() {
         ocf_log info "mediationzone: ${OCF_RESKEY_pico} already running"
         return "$OCF_SUCCESS"
     fi
-    ocf_log info "mediationzone: ${OCF_RESKEY_pico} not running, starting"
+    ocf_log debug "mediationzone: ${OCF_RESKEY_pico} starting"
     # evict any lingering JVM that mzsh considers stopped but that still holds its port
     timeout "$OCF_RESKEY_mzsh_timeout" \
         su - "$OCF_RESKEY_os_user" -c \
@@ -218,7 +219,7 @@ mediationzone_start() {
 }
 
 mediationzone_stop() {
-    ocf_log info "mediationzone: ${OCF_RESKEY_pico} stopping"
+    ocf_log debug "mediationzone: ${OCF_RESKEY_pico} stopping"
     timeout "$OCF_RESKEY_mzsh_timeout" \
         su - "$OCF_RESKEY_os_user" -c \
         "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh shutdown ${OCF_RESKEY_pico}"
@@ -313,7 +314,7 @@ esac
 
 ocf_is_root || { ocf_log err "mediationzone: must be run as root"; exit "$OCF_ERR_PERM"; }
 
-ocf_log info "mediationzone ${mediationzone_version}: begin ${__OCF_ACTION} pico=${OCF_RESKEY_pico}"
+ocf_log debug "mediationzone ${mediationzone_version}: begin ${__OCF_ACTION} pico=${OCF_RESKEY_pico}"
 
 case "$__OCF_ACTION" in
     start)
@@ -339,5 +340,5 @@ esac
 
 rc=$?
 # shellcheck disable=SC3028
-ocf_log info "mediationzone ${mediationzone_version}: end ${__OCF_ACTION} pico=${OCF_RESKEY_pico} rc=${rc} (${SECONDS}s)"
+ocf_log debug "mediationzone ${mediationzone_version}: end ${__OCF_ACTION} pico=${OCF_RESKEY_pico} rc=${rc} (${SECONDS}s)"
 exit "$rc"
