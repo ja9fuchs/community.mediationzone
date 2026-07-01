@@ -13,27 +13,27 @@ CONFIG
 SETUP-AGENT
     TEST_DIR=/var/lib/ocft/mediationzone
     mkdir -p ${TEST_DIR}/mz_home/bin ${TEST_DIR}/java_home ${TEST_DIR}/state
-    {
-      echo '#!/bin/bash'
-      echo 'STATE_DIR=/var/lib/ocft/mediationzone/state'
-      echo 'action="" pico=""'
-      echo 'while [[ $# -gt 0 ]]; do'
-      echo '    case "$1" in'
-      echo '        startup|shutdown|status|kill) action="$1" ;;'
-      echo '        -f|-q) ;;'
-      echo '        *) pico="$1" ;;'
-      echo '    esac'
-      echo '    shift'
-      echo 'done'
-      echo 'state_file="${STATE_DIR}/mzone_state_${pico}"'
-      echo 'case "$action" in'
-      echo '    startup)  echo running > "$state_file"; exit 0 ;;'
-      echo '    shutdown) rm -f "$state_file"; exit 0 ;;'
-      echo '    status)   [[ -f "$state_file" ]] && exit 0 || exit 2 ;;'
-      echo '    kill)     rm -f "$state_file"; exit 0 ;;'
-      echo '    *)        exit 1 ;;'
-      echo 'esac'
-    } > ${TEST_DIR}/mz_home/bin/mzsh
+    cat > ${TEST_DIR}/mz_home/bin/mzsh <<'EOF'
+#!/bin/sh
+STATE_DIR=/var/lib/ocft/mediationzone/state
+action="" pico=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        startup|shutdown|status|kill) action="$1" ;;
+        -f|-q) ;;
+        *) pico="$1" ;;
+    esac
+    shift
+done
+state_file="${STATE_DIR}/mzone_state_${pico}"
+case "$action" in
+    startup)  echo running > "$state_file"; exit 0 ;;
+    shutdown) rm -f "$state_file"; exit 0 ;;
+    status)   [ -f "$state_file" ] && exit 0 || exit 2 ;;
+    kill)     rm -f "$state_file"; exit 0 ;;
+    *)        exit 1 ;;
+esac
+EOF
     chmod 755 ${TEST_DIR}/mz_home/bin/mzsh
     chmod 777 ${TEST_DIR}/state
     if id mzadmin >/dev/null 2>&1; then
