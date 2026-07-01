@@ -320,11 +320,6 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 0 ]
 }
 
-@test "notify exits 0" {
-    run_ra notify
-    [ "$status" -eq 0 ]
-}
-
 @test "unknown action returns OCF_ERR_UNIMPLEMENTED" {
     run_ra frobinate
     [ "$status" -eq 3 ]

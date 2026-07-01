@@ -27,6 +27,10 @@ have_binary() {
     [[ -x "$1" ]]
 }
 
+ocf_exit_reason() {
+    echo "ocf-exit-reason: $*" >&2
+}
+
 ocf_is_decimal() {
     case "$1" in
         ""|*[!0-9]*) false ;;
