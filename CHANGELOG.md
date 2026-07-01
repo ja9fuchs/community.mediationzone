@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.1] - 2026-07-01
+
+### Fixed
+- Monitor: redirected mzsh stdout to `/dev/null`; mzsh status output ("ui is running") was passed to the Pacemaker XML parser, producing `pcmk__log_xmllib_err` errors in the cluster log
+
+### Changed
+- Added `ocf_exit_reason` on all error-exit paths so failure reasons appear in `pcs status`
+- Removed `mediationzone:` prefix from log messages; Pacemaker already tags log lines with the resource agent name
+
 ## [0.4.0] - 2026-07-01
 
 ### Changed

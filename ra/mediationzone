@@ -31,7 +31,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.0"
+mediationzone_version="0.4.1"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -167,23 +167,27 @@ mediationzone_monitor() {
             > /dev/null 2>&1
         rc=$?
         case $rc in
-            0)   ocf_log debug "mediationzone: ${OCF_RESKEY_pico} is running"
+            0)   ocf_log debug "${OCF_RESKEY_pico} is running"
                  return "$OCF_SUCCESS" ;;
-            2)   ocf_log info "mediationzone: ${OCF_RESKEY_pico} is not running (attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
-            124) ocf_log err "mediationzone: ${OCF_RESKEY_pico} status timed out, not retrying"
+            2)   ocf_log info "${OCF_RESKEY_pico} is not running (attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
+            124) ocf_exit_reason "${OCF_RESKEY_pico} status timed out"
                  return "$OCF_ERR_GENERIC" ;;
-            *)   ocf_log warn "mediationzone: ${OCF_RESKEY_pico} status failed (mzsh rc=${rc}, attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
+            *)   ocf_log warn "${OCF_RESKEY_pico} status failed (mzsh rc=${rc}, attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
         esac
     done
-    [ "$rc" -eq 2 ] && return "$OCF_NOT_RUNNING" || return "$OCF_ERR_GENERIC"
+    if [ "$rc" -eq 2 ]; then
+        return "$OCF_NOT_RUNNING"
+    fi
+    ocf_exit_reason "${OCF_RESKEY_pico} status failed after ${MEDIATIONZONE_MONITOR_ATTEMPTS} attempts (mzsh rc=${rc})"
+    return "$OCF_ERR_GENERIC"
 }
 
 mediationzone_start() {
     if mediationzone_check; then
-        ocf_log info "mediationzone: ${OCF_RESKEY_pico} already running"
+        ocf_log info "${OCF_RESKEY_pico} already running"
         return "$OCF_SUCCESS"
     fi
-    ocf_log debug "mediationzone: ${OCF_RESKEY_pico} starting"
+    ocf_log debug "${OCF_RESKEY_pico} starting"
     # evict any lingering JVM that mzsh considers stopped but that still holds its port
     timeout "$OCF_RESKEY_mzsh_timeout" \
         su - "$OCF_RESKEY_os_user" -c \
@@ -199,7 +203,7 @@ mediationzone_start() {
     # rc=104 is "failed critical" - mzsh startup is blocking so the JVM has already exited,
     # but kill for safety then clear TIME-WAIT before retrying
     if [ $rc -eq 104 ]; then
-        ocf_log warn "mediationzone: mzsh startup ${OCF_RESKEY_pico} failed (mzsh rc=104), evicting failed JVM and retrying"
+        ocf_log warn "mzsh startup ${OCF_RESKEY_pico} failed (mzsh rc=104), evicting failed JVM and retrying"
         timeout "$OCF_RESKEY_mzsh_timeout" \
             su - "$OCF_RESKEY_os_user" -c \
             "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh kill ${OCF_RESKEY_pico}" \
@@ -211,26 +215,26 @@ mediationzone_start() {
     fi
 
     if [ $rc -eq 0 ]; then
-        ocf_log info "mediationzone: ${OCF_RESKEY_pico} started"
+        ocf_log info "${OCF_RESKEY_pico} started"
         return "$OCF_SUCCESS"
     fi
-    ocf_log err "mediationzone: mzsh startup ${OCF_RESKEY_pico} failed (mzsh rc=${rc})"
+    ocf_exit_reason "mzsh startup ${OCF_RESKEY_pico} failed (mzsh rc=${rc})"
     return "$OCF_ERR_GENERIC"
 }
 
 mediationzone_stop() {
-    ocf_log debug "mediationzone: ${OCF_RESKEY_pico} stopping"
+    ocf_log debug "${OCF_RESKEY_pico} stopping"
     timeout "$OCF_RESKEY_mzsh_timeout" \
         su - "$OCF_RESKEY_os_user" -c \
         "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh shutdown ${OCF_RESKEY_pico}"
     rc=$?
     if [ $rc -eq 124 ]; then
-        ocf_log err "mediationzone: mzsh shutdown ${OCF_RESKEY_pico} timed out, escalating to mzsh kill"
+        ocf_log err "mzsh shutdown ${OCF_RESKEY_pico} timed out, escalating to mzsh kill"
     elif [ $rc -eq 0 ]; then
-        ocf_log info "mediationzone: ${OCF_RESKEY_pico} stopped"
+        ocf_log info "${OCF_RESKEY_pico} stopped"
         return "$OCF_SUCCESS"
     else
-        ocf_log err "mediationzone: mzsh shutdown ${OCF_RESKEY_pico} failed (mzsh rc=${rc}), escalating to mzsh kill"
+        ocf_log err "mzsh shutdown ${OCF_RESKEY_pico} failed (mzsh rc=${rc}), escalating to mzsh kill"
     fi
     # escalate: force-kill via mzsh using the pid file
     timeout "$OCF_RESKEY_mzsh_timeout" \
@@ -238,47 +242,47 @@ mediationzone_stop() {
         "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh kill ${OCF_RESKEY_pico}"
     rc=$?
     if [ $rc -eq 124 ]; then
-        ocf_log err "mediationzone: mzsh kill ${OCF_RESKEY_pico} timed out"
+        ocf_exit_reason "mzsh kill ${OCF_RESKEY_pico} timed out"
         return "$OCF_ERR_GENERIC"
     elif [ $rc -ne 0 ]; then
-        ocf_log err "mediationzone: mzsh kill ${OCF_RESKEY_pico} failed (mzsh rc=${rc})"
+        ocf_exit_reason "mzsh kill ${OCF_RESKEY_pico} failed (mzsh rc=${rc})"
         return "$OCF_ERR_GENERIC"
     fi
-    ocf_log info "mediationzone: ${OCF_RESKEY_pico} killed"
+    ocf_log info "${OCF_RESKEY_pico} killed"
     return "$OCF_SUCCESS"
 }
 
 mediationzone_validate() {
     if ! id "$OCF_RESKEY_os_user" > /dev/null 2>&1; then
-        ocf_log err "mediationzone: os_user '${OCF_RESKEY_os_user}' does not exist"
+        ocf_exit_reason "os_user '${OCF_RESKEY_os_user}' does not exist"
         return "$OCF_ERR_CONFIGURED"
     fi
     case "$OCF_RESKEY_mz_home" in
         *[![:alnum:]/_+.-]*)
-            ocf_log err "mediationzone: mz_home '${OCF_RESKEY_mz_home}' contains unsupported characters"
+            ocf_exit_reason "mz_home '${OCF_RESKEY_mz_home}' contains unsupported characters"
             return "$OCF_ERR_CONFIGURED" ;;
     esac
     case "$OCF_RESKEY_java_home" in
         *[![:alnum:]/_+.-]*)
-            ocf_log err "mediationzone: java_home '${OCF_RESKEY_java_home}' contains unsupported characters"
+            ocf_exit_reason "java_home '${OCF_RESKEY_java_home}' contains unsupported characters"
             return "$OCF_ERR_CONFIGURED" ;;
     esac
     if ! ocf_is_decimal "$OCF_RESKEY_mzsh_timeout" || [ "$OCF_RESKEY_mzsh_timeout" -lt 10 ]; then
-        ocf_log err "mediationzone: mzsh_timeout '${OCF_RESKEY_mzsh_timeout}' must be 10 or greater"
+        ocf_exit_reason "mzsh_timeout '${OCF_RESKEY_mzsh_timeout}' must be 10 or greater"
         return "$OCF_ERR_CONFIGURED"
     fi
 
     # verify paths exist and are accessible
     if [ ! -d "$OCF_RESKEY_mz_home" ]; then
-        ocf_log err "mediationzone: mz_home '${OCF_RESKEY_mz_home}' does not exist"
+        ocf_exit_reason "mz_home '${OCF_RESKEY_mz_home}' does not exist"
         return "$OCF_ERR_CONFIGURED"
     fi
     if ! have_binary "${OCF_RESKEY_mz_home}/bin/mzsh"; then
-        ocf_log err "mediationzone: mzsh not found or not executable at ${OCF_RESKEY_mz_home}/bin/mzsh"
+        ocf_exit_reason "mzsh not found or not executable at ${OCF_RESKEY_mz_home}/bin/mzsh"
         return "$OCF_ERR_INSTALLED"
     fi
     if [ ! -d "$OCF_RESKEY_java_home" ]; then
-        ocf_log err "mediationzone: java_home '${OCF_RESKEY_java_home}' does not exist"
+        ocf_exit_reason "java_home '${OCF_RESKEY_java_home}' does not exist"
         return "$OCF_ERR_CONFIGURED"
     fi
 
@@ -287,13 +291,13 @@ mediationzone_validate() {
         platform|ui|ec) ;;
         *)
             if [ -z "$OCF_RESKEY_pico_port" ]; then
-                ocf_log err "mediationzone: pico_port is required for pico '${OCF_RESKEY_pico}' - no default available for this pico type"
+                ocf_exit_reason "pico_port is required for pico '${OCF_RESKEY_pico}' - no default available for this pico type"
                 return "$OCF_ERR_CONFIGURED"
             fi ;;
     esac
     if [ -n "$OCF_RESKEY_pico_port" ] && \
        { ! ocf_is_decimal "$OCF_RESKEY_pico_port" || [ "$OCF_RESKEY_pico_port" -le 0 ]; }; then
-        ocf_log err "mediationzone: pico_port '${OCF_RESKEY_pico_port}' must be a positive integer"
+        ocf_exit_reason "pico_port '${OCF_RESKEY_pico_port}' must be a positive integer"
         return "$OCF_ERR_CONFIGURED"
     fi
     return "$OCF_SUCCESS"
@@ -312,9 +316,9 @@ case "$__OCF_ACTION" in
     methods)    mediationzone_methods;   exit "$OCF_SUCCESS" ;;
 esac
 
-ocf_is_root || { ocf_log err "mediationzone: must be run as root"; exit "$OCF_ERR_PERM"; }
+ocf_is_root || { ocf_exit_reason "must be run as root"; exit "$OCF_ERR_PERM"; }
 
-ocf_log debug "mediationzone ${mediationzone_version}: begin ${__OCF_ACTION} pico=${OCF_RESKEY_pico}"
+ocf_log debug "begin ${__OCF_ACTION} pico=${OCF_RESKEY_pico}"
 
 case "$__OCF_ACTION" in
     start)
@@ -340,5 +344,5 @@ esac
 
 rc=$?
 # shellcheck disable=SC3028
-ocf_log debug "mediationzone ${mediationzone_version}: end ${__OCF_ACTION} pico=${OCF_RESKEY_pico} rc=${rc} (${SECONDS}s)"
+ocf_log debug "end ${__OCF_ACTION} pico=${OCF_RESKEY_pico} rc=${rc} (${SECONDS}s)"
 exit "$rc"
