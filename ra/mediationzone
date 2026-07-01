@@ -288,6 +288,11 @@ mediationzone_validate() {
 
     # validate pico name and port
     case "$OCF_RESKEY_pico" in
+        *[!a-z0-9-]*)
+            ocf_exit_reason "pico \"${OCF_RESKEY_pico}\" contains unsupported characters"
+            return "$OCF_ERR_CONFIGURED" ;;
+    esac
+    case "$OCF_RESKEY_pico" in
         platform|ui|ec) ;;
         *)
             if [ -z "$OCF_RESKEY_pico_port" ]; then

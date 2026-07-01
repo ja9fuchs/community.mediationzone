@@ -17,7 +17,7 @@ The mock `mzsh` in `test/bin/` tracks pico state via files in a temporary direct
 Example result:
 
 ```
-→ bats ./mediationzone.bats 
+→ bats ./test/mediationzone.bats 
 mediationzone.bats
  ✓ meta-data exits 0
  ✓ meta-data outputs valid XML
@@ -37,6 +37,9 @@ mediationzone.bats
  ✓ validate-all fails when mzsh_timeout is below minimum (9)
  ✓ validate-all passes when mzsh_timeout is at minimum (10)
  ✓ validate-all fails when pico_port is not a positive integer
+ ✓ validate-all fails when pico contains shell metacharacters
+ ✓ validate-all fails when pico contains uppercase letters
+ ✓ validate-all fails when pico contains underscores
  ✓ monitor returns OCF_NOT_RUNNING when pico is stopped
  ✓ monitor returns OCF_SUCCESS when pico is running
  ✓ monitor returns OCF_NOT_RUNNING for ui when only platform is running
@@ -63,10 +66,9 @@ mediationzone.bats
  ✓ usage exits 0
  ✓ methods exits 0
  ✓ help exits 0
- ✓ notify exits 0
  ✓ unknown action returns OCF_ERR_UNIMPLEMENTED
 
-46 tests, 0 failures
+48 tests, 0 failures
 ```
 
 
@@ -107,6 +109,7 @@ mediationzone: validate-all fails when java_home does not exist - OK.
 mediationzone: validate-all fails when java_home contains shell metacharacters - OK.
 mediationzone: validate-all fails when mzsh_timeout is not an integer - OK.
 mediationzone: validate-all fails when mzsh_timeout is below minimum - OK.
+mediationzone: validate-all fails when pico contains unsupported characters - OK.
 mediationzone: validate-all fails for unknown pico type without pico_port - OK.
 mediationzone: validate-all passes for unknown pico type with pico_port - OK.
 mediationzone: monitor returns OCF_NOT_RUNNING when pico is stopped - OK.

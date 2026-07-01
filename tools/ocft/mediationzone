@@ -108,6 +108,11 @@ CASE "validate-all fails when mzsh_timeout is below minimum"
     Env OCF_RESKEY_mzsh_timeout=9
     AgentRun validate-all OCF_ERR_CONFIGURED
 
+CASE "validate-all fails when pico contains unsupported characters"
+    Include prepare
+    Env OCF_RESKEY_pico=Platform
+    AgentRun validate-all OCF_ERR_CONFIGURED
+
 CASE "validate-all fails for unknown pico type without pico_port"
     Include prepare
     Env OCF_RESKEY_pico=custom

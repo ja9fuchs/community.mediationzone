@@ -106,6 +106,21 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
+@test "validate-all fails when pico contains shell metacharacters" {
+    OCF_RESKEY_pico="platform;evil" run_ra validate-all
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
+@test "validate-all fails when pico contains uppercase letters" {
+    OCF_RESKEY_pico="Platform" run_ra validate-all
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
+@test "validate-all fails when pico contains underscores" {
+    OCF_RESKEY_pico="my_pico" run_ra validate-all
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
 # --- monitor ---
 
 @test "monitor returns OCF_NOT_RUNNING when pico is stopped" {
