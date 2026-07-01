@@ -343,6 +343,5 @@ case "$__OCF_ACTION" in
 esac
 
 rc=$?
-# shellcheck disable=SC3028
-ocf_log debug "end ${__OCF_ACTION} pico=${OCF_RESKEY_pico} rc=${rc} (${SECONDS}s)"
+ocf_log debug "end ${__OCF_ACTION} pico=${OCF_RESKEY_pico} rc=${rc}"
 exit "$rc"
