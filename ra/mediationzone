@@ -254,27 +254,27 @@ mediationzone_stop() {
 
 mediationzone_validate() {
     if ! id "$OCF_RESKEY_os_user" > /dev/null 2>&1; then
-        ocf_exit_reason "os_user '${OCF_RESKEY_os_user}' does not exist"
+        ocf_exit_reason "os_user \"${OCF_RESKEY_os_user}\" does not exist"
         return "$OCF_ERR_CONFIGURED"
     fi
     case "$OCF_RESKEY_mz_home" in
         *[![:alnum:]/_+.-]*)
-            ocf_exit_reason "mz_home '${OCF_RESKEY_mz_home}' contains unsupported characters"
+            ocf_exit_reason "mz_home \"${OCF_RESKEY_mz_home}\" contains unsupported characters"
             return "$OCF_ERR_CONFIGURED" ;;
     esac
     case "$OCF_RESKEY_java_home" in
         *[![:alnum:]/_+.-]*)
-            ocf_exit_reason "java_home '${OCF_RESKEY_java_home}' contains unsupported characters"
+            ocf_exit_reason "java_home \"${OCF_RESKEY_java_home}\" contains unsupported characters"
             return "$OCF_ERR_CONFIGURED" ;;
     esac
     if ! ocf_is_decimal "$OCF_RESKEY_mzsh_timeout" || [ "$OCF_RESKEY_mzsh_timeout" -lt 10 ]; then
-        ocf_exit_reason "mzsh_timeout '${OCF_RESKEY_mzsh_timeout}' must be 10 or greater"
+        ocf_exit_reason "mzsh_timeout \"${OCF_RESKEY_mzsh_timeout}\" must be 10 or greater"
         return "$OCF_ERR_CONFIGURED"
     fi
 
     # verify paths exist and are accessible
     if [ ! -d "$OCF_RESKEY_mz_home" ]; then
-        ocf_exit_reason "mz_home '${OCF_RESKEY_mz_home}' does not exist"
+        ocf_exit_reason "mz_home \"${OCF_RESKEY_mz_home}\" does not exist"
         return "$OCF_ERR_CONFIGURED"
     fi
     if ! have_binary "${OCF_RESKEY_mz_home}/bin/mzsh"; then
@@ -282,7 +282,7 @@ mediationzone_validate() {
         return "$OCF_ERR_INSTALLED"
     fi
     if [ ! -d "$OCF_RESKEY_java_home" ]; then
-        ocf_exit_reason "java_home '${OCF_RESKEY_java_home}' does not exist"
+        ocf_exit_reason "java_home \"${OCF_RESKEY_java_home}\" does not exist"
         return "$OCF_ERR_CONFIGURED"
     fi
 
@@ -291,13 +291,13 @@ mediationzone_validate() {
         platform|ui|ec) ;;
         *)
             if [ -z "$OCF_RESKEY_pico_port" ]; then
-                ocf_exit_reason "pico_port is required for pico '${OCF_RESKEY_pico}' - no default available for this pico type"
+                ocf_exit_reason "pico_port is required for pico \"${OCF_RESKEY_pico}\" - no default available for this pico type"
                 return "$OCF_ERR_CONFIGURED"
             fi ;;
     esac
     if [ -n "$OCF_RESKEY_pico_port" ] && \
        { ! ocf_is_decimal "$OCF_RESKEY_pico_port" || [ "$OCF_RESKEY_pico_port" -le 0 ]; }; then
-        ocf_exit_reason "pico_port '${OCF_RESKEY_pico_port}' must be a positive integer"
+        ocf_exit_reason "pico_port \"${OCF_RESKEY_pico_port}\" must be a positive integer"
         return "$OCF_ERR_CONFIGURED"
     fi
     return "$OCF_SUCCESS"
