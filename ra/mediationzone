@@ -93,8 +93,8 @@ to take effect.
 </longdesc>
 <parameters>
 <parameter name="os_user" unique="0" required="0">
-    <shortdesc lang="en">Linux user to run mzsh as.</shortdesc>
-    <longdesc lang="en">Linux OS user that owns the MediationZone installation and runs mzsh commands.</longdesc>
+    <shortdesc lang="en">OS user to run mzsh as.</shortdesc>
+    <longdesc lang="en">OS user that owns the MediationZone installation and runs mzsh commands.</longdesc>
     <content type="string" default="${OCF_RESKEY_os_user_default}" />
 </parameter>
 <parameter name="mz_home" unique="0" required="0">
