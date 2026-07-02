@@ -31,7 +31,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.3"
+mediationzone_version="0.4.5"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -194,9 +194,12 @@ mediationzone_start() {
     # inter-pico TCP connection in TIME-WAIT, which can block the new JVM from binding the port
     ss -K state time-wait "( sport = :${OCF_RESKEY_pico_port} )" > /dev/null 2>&1 || true
     # -f forces start of a pico that is registered but unreachable (e.g. after a crash)
-    su - "$OCF_RESKEY_os_user" -c \
-        "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f -q ${OCF_RESKEY_pico_name}"
+    # stdout captured: rc=0 does not guarantee a healthy start - "Started with errors" indicates
+    # codeserver-only mode where the pico is up but the platform service is not fully running
+    startup_out=$(su - "$OCF_RESKEY_os_user" -c \
+        "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f ${OCF_RESKEY_pico_name}")
     rc=$?
+    ocf_log debug "mzsh startup ${OCF_RESKEY_pico_name}: ${startup_out}"
     # rc=104 is "failed critical" - mzsh startup is blocking so the JVM has already exited,
     # but kill for safety then clear TIME-WAIT before retrying
     if [ $rc -eq 104 ]; then
@@ -206,17 +209,26 @@ mediationzone_start() {
             "${MEDIATIONZONE_MZSH_LOCAL_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh kill ${OCF_RESKEY_pico_name}" \
             > /dev/null 2>&1 || true
         ss -K state time-wait "( sport = :${OCF_RESKEY_pico_port} )" > /dev/null 2>&1 || true
-        su - "$OCF_RESKEY_os_user" -c \
-            "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f -q ${OCF_RESKEY_pico_name}"
+        startup_out=$(su - "$OCF_RESKEY_os_user" -c \
+            "${MEDIATIONZONE_MZSH_ENV} ${OCF_RESKEY_mz_home}/bin/mzsh startup -f ${OCF_RESKEY_pico_name}")
         rc=$?
+        ocf_log debug "mzsh startup ${OCF_RESKEY_pico_name} (retry): ${startup_out}"
     fi
 
-    if [ $rc -eq 0 ]; then
-        ocf_log info "${OCF_RESKEY_pico_name} started"
-        return "$OCF_SUCCESS"
+    if [ $rc -ne 0 ]; then
+        ocf_exit_reason "mzsh startup ${OCF_RESKEY_pico_name} failed (mzsh rc=${rc})"
+        return "$OCF_ERR_GENERIC"
     fi
-    ocf_exit_reason "mzsh startup ${OCF_RESKEY_pico_name} failed (mzsh rc=${rc})"
-    return "$OCF_ERR_GENERIC"
+    case $startup_out in
+        *"tarted with errors"*)
+            ocf_exit_reason "mzsh startup ${OCF_RESKEY_pico_name} started in degraded mode (codeserver only)"
+            return "$OCF_ERR_GENERIC" ;;
+        *"no such server process"*)
+            ocf_exit_reason "mzsh startup ${OCF_RESKEY_pico_name}: pico not found or not registered"
+            return "$OCF_ERR_GENERIC" ;;
+    esac
+    ocf_log info "${OCF_RESKEY_pico_name} started"
+    return "$OCF_SUCCESS"
 }
 
 mediationzone_stop() {

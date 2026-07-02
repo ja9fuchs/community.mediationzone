@@ -36,6 +36,21 @@ state_file="${STATE_DIR}/mzone_state_${pico}"
 fail_file="${STATE_DIR}/mzone_fail_${action}"
 slow_file="${STATE_DIR}/mzone_slow_${action}"
 error_file="${STATE_DIR}/mzone_error_${action}"
+degraded_file="${STATE_DIR}/mzone_degraded_${action}"
+notfound_file="${STATE_DIR}/mzone_notfound_${action}"
+
+if [[ -e "$degraded_file" ]]; then
+    rm "$degraded_file"
+    echo "running" > "$state_file"
+    printf "Starting %s...Started with errors, Only Codeserver service is guaranteed to be running.\n" "$pico"
+    exit 0
+fi
+
+if [[ -e "$notfound_file" ]]; then
+    rm "$notfound_file"
+    printf "%s: no such server process\n" "$pico"
+    exit 0
+fi
 
 if [[ -e "$slow_file" ]]; then
     rm "$slow_file"

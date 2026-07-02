@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.5] - 2026-07-02
+
+### Fixed
+- Start: detect `mzsh startup` returning "no such server process" with rc=0 and fail with
+  `OCF_ERR_GENERIC`. mzsh exits 0 when the pico name is not registered, without starting
+  anything; previously accepted as success.
+
+## [0.4.4] - 2026-07-02
+
+### Fixed
+- Start: detect degraded startup (rc=0 with "Started with errors" in mzsh output) and return `OCF_ERR_GENERIC`. mzsh startup returns rc=0 when the pico starts in codeserver-only mode (e.g. platform VIP absent), previously accepted as success. Stdout is now captured and checked; a healthy start produces no such output.
+
 ## [0.4.3] - 2026-07-02
 
 ### Changed

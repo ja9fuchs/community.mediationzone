@@ -160,6 +160,20 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 1 ]  # OCF_ERR_GENERIC
 }
 
+@test "start fails when mzsh startup returns degraded state (started with errors)" {
+    inject_degraded startup
+    run_ra start
+    [ "$status" -eq 1 ]  # OCF_ERR_GENERIC
+    [[ "$output" == *"degraded"* ]]
+}
+
+@test "start fails when mzsh startup returns no such server process" {
+    inject_notfound startup
+    run_ra start
+    [ "$status" -eq 1 ]  # OCF_ERR_GENERIC
+    [[ "$output" == *"not found"* ]]
+}
+
 @test "start leaves pico running after success" {
     run_ra start
     [ "$status" -eq 0 ]

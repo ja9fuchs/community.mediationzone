@@ -46,6 +46,7 @@ mediationzone.bats
  ✓ start brings pico from stopped to running
  ✓ start is idempotent when pico already running
  ✓ start fails when mzsh startup fails
+ ✓ start fails when mzsh startup returns degraded state (started with errors)
  ✓ start leaves pico running after success
  ✓ stop brings pico from running to stopped
  ✓ stop is idempotent when pico already stopped
@@ -66,7 +67,7 @@ mediationzone.bats
  ✓ help exits 0
  ✓ unknown action returns OCF_ERR_UNIMPLEMENTED
 
-46 tests, 0 failures
+47 tests, 0 failures
 ```
 
 

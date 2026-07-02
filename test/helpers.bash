@@ -63,3 +63,13 @@ inject_error() {
     local action="$1"
     touch "${STATE_DIR}/mzone_error_${action}"
 }
+
+inject_degraded() {
+    local action="$1"
+    touch "${STATE_DIR}/mzone_degraded_${action}"
+}
+
+inject_notfound() {
+    local action="$1"
+    touch "${STATE_DIR}/mzone_notfound_${action}"
+}
