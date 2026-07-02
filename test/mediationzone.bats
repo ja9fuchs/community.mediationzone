@@ -278,10 +278,18 @@ teardown() { teardown_test_env; }
 
 # --- stop edge cases ---
 
+@test "stop returns success when kill returns rc=2 (pico already not running)" {
+    set_pico_running platform
+    inject_fail shutdown 1
+    inject_fail kill 1      # kill rc=2: process not running - stop already achieved
+    run_ra stop
+    [ "$status" -eq 0 ]  # OCF_SUCCESS
+}
+
 @test "stop returns OCF_ERR_GENERIC when shutdown and kill both fail" {
     set_pico_running platform
     inject_fail shutdown 1
-    inject_fail kill 1      # kill also fails
+    inject_fail kill 1 1    # kill fails with rc=1 (no pid file / permission error)
     run_ra stop
     [ "$status" -eq 1 ]  # OCF_ERR_GENERIC
 }

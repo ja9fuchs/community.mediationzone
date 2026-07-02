@@ -31,7 +31,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.5"
+mediationzone_version="0.4.6"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -253,6 +253,9 @@ mediationzone_stop() {
     if [ $rc -eq 124 ]; then
         ocf_exit_reason "mzsh kill ${OCF_RESKEY_pico_name} timed out"
         return "$OCF_ERR_GENERIC"
+    elif [ $rc -eq 2 ]; then
+        ocf_log info "${OCF_RESKEY_pico_name} already stopped"
+        return "$OCF_SUCCESS"
     elif [ $rc -ne 0 ]; then
         ocf_exit_reason "mzsh kill ${OCF_RESKEY_pico_name} failed (mzsh rc=${rc})"
         return "$OCF_ERR_GENERIC"

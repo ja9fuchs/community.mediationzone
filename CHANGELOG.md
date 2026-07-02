@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.6] - 2026-07-02
+
+### Fixed
+- Stop: treat `mzsh kill` rc=2 ("target process is not running") as success. Previously
+  any non-zero kill rc caused `OCF_ERR_GENERIC`; rc=2 during stop escalation means the
+  pico has already stopped, which is the desired state.
+
 ## [0.4.5] - 2026-07-02
 
 ### Fixed
