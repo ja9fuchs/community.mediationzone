@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.3] - 2026-07-02
+
+### Changed
+- Removed `ec` as a known pico name with a default port (9090). Execution context picos always have custom names in practice (e.g. `eh1ec1`); the generic name `ec` does not exist in production deployments. Any non-platform, non-ui pico now requires `pico_port` to be set explicitly.
+
 ## [0.4.2] - 2026-07-02
 
 ### Changed

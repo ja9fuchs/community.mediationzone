@@ -34,11 +34,6 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 0 ]
 }
 
-@test "validate-all passes for ec pico" {
-    OCF_RESKEY_pico_name="ec" run_ra validate-all
-    [ "$status" -eq 0 ]
-}
-
 @test "validate-all passes for unknown pico type when pico_port is set" {
     OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="9999" run_ra validate-all
     [ "$status" -eq 0 ]
@@ -227,20 +222,6 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 0 ]
 
     OCF_RESKEY_pico_name="ui" run_ra monitor
-    [ "$status" -eq 7 ]
-}
-
-@test "full lifecycle for ec pico" {
-    OCF_RESKEY_pico_name="ec" run_ra start
-    [ "$status" -eq 0 ]
-
-    OCF_RESKEY_pico_name="ec" run_ra monitor
-    [ "$status" -eq 0 ]
-
-    OCF_RESKEY_pico_name="ec" run_ra stop
-    [ "$status" -eq 0 ]
-
-    OCF_RESKEY_pico_name="ec" run_ra monitor
     [ "$status" -eq 7 ]
 }
 

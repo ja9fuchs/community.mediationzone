@@ -23,7 +23,6 @@ mediationzone.bats
  ✓ meta-data outputs valid XML
  ✓ meta-data contains agent name
  ✓ validate-all passes with valid config
- ✓ validate-all passes for ec pico
  ✓ validate-all passes for unknown pico type when pico_port is set
  ✓ validate-all fails for unknown pico type without pico_port
  ✓ validate-all fails when os_user does not exist
@@ -54,7 +53,6 @@ mediationzone.bats
  ✓ stop escalates to mzsh kill when shutdown fails
  ✓ full lifecycle: start, monitor running, stop, monitor stopped
  ✓ full lifecycle for ui pico
- ✓ full lifecycle for ec pico
  ✓ full lifecycle for custom pico with explicit pico_port
  ✓ monitor retries and returns OCF_SUCCESS after transient status failure
  ✓ monitor detects mzsh status timeout (rc=124)
@@ -68,7 +66,7 @@ mediationzone.bats
  ✓ help exits 0
  ✓ unknown action returns OCF_ERR_UNIMPLEMENTED
 
-48 tests, 0 failures
+46 tests, 0 failures
 ```
 
 

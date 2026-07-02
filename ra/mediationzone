@@ -31,7 +31,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.2"
+mediationzone_version="0.4.3"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -58,7 +58,6 @@ if [ -z "$OCF_RESKEY_pico_port" ]; then
     case "$OCF_RESKEY_pico_name" in
         platform) OCF_RESKEY_pico_port=9000 ;;
         ui)       OCF_RESKEY_pico_port=9001 ;;
-        ec)       OCF_RESKEY_pico_port=9090 ;;
     esac
 fi
 
@@ -109,12 +108,12 @@ to take effect.
 </parameter>
 <parameter name="pico_name" unique="0" required="0">
     <shortdesc lang="en">Name of the pico to manage.</shortdesc>
-    <longdesc lang="en">Name of the MediationZone pico to manage. Common names are platform, ui, and ec, but production systems typically have multiple execution contexts with custom names (e.g. eh1ec1, eh1ec2). Names with custom ports require pico_port to be set explicitly.</longdesc>
+    <longdesc lang="en">Name of the MediationZone pico to manage. Known names with default ports are platform (9000) and ui (9001). Set pico_port explicitly for other pico name and port combinations.</longdesc>
     <content type="string" default="${OCF_RESKEY_pico_name_default}" />
 </parameter>
 <parameter name="pico_port" unique="0" required="0">
     <shortdesc lang="en">Web server port of the pico.</shortdesc>
-    <longdesc lang="en">The port the pico web server listens on. Used to clear TIME-WAIT connections before startup. Defaults to 9000 for platform, 9001 for ui, and 9090 for ec. Must be set explicitly when managing a different pico type, or when the default port has been changed in the container configuration.</longdesc>
+    <longdesc lang="en">The port the pico web server listens on. Used to clear TIME-WAIT connections before startup. Defaults to 9000 for platform and 9001 for ui. Must be set explicitly when managing a different pico type, or when the default port has been changed in the container configuration.</longdesc>
     <content type="integer" default="" />
 </parameter>
 <parameter name="mzsh_timeout" unique="0" required="0">
@@ -291,7 +290,7 @@ mediationzone_validate() {
             return "$OCF_ERR_CONFIGURED" ;;
     esac
     case "$OCF_RESKEY_pico_name" in
-        platform|ui|ec) ;;
+        platform|ui) ;;
         *)
             if [ -z "$OCF_RESKEY_pico_port" ]; then
                 ocf_exit_reason "pico_port is required for pico_name \"${OCF_RESKEY_pico_name}\" - no default available for this pico"
