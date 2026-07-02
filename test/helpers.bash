@@ -24,7 +24,7 @@ setup_test_env() {
     export OCF_RESKEY_os_user
     export OCF_RESKEY_mz_home="${MZ_HOME}"
     export OCF_RESKEY_java_home="${JAVA_HOME_DIR}"
-    export OCF_RESKEY_pico="platform"
+    export OCF_RESKEY_pico_name="platform"
 }
 
 teardown_test_env() {

@@ -52,7 +52,7 @@ CASE-BLOCK required_args
     Env OCF_RESKEY_os_user=mzadmin
     Env OCF_RESKEY_mz_home=/var/lib/ocft/mediationzone/mz_home
     Env OCF_RESKEY_java_home=/var/lib/ocft/mediationzone/java_home
-    Env OCF_RESKEY_pico=platform
+    Env OCF_RESKEY_pico_name=platform
 
 CASE-BLOCK default_status
     AgentRun stop
@@ -108,19 +108,19 @@ CASE "validate-all fails when mzsh_timeout is below minimum"
     Env OCF_RESKEY_mzsh_timeout=9
     AgentRun validate-all OCF_ERR_CONFIGURED
 
-CASE "validate-all fails when pico contains unsupported characters"
+CASE "validate-all fails when pico_name contains unsupported characters"
     Include prepare
-    Env OCF_RESKEY_pico=Platform
+    Env OCF_RESKEY_pico_name=Platform
     AgentRun validate-all OCF_ERR_CONFIGURED
 
 CASE "validate-all fails for unknown pico type without pico_port"
     Include prepare
-    Env OCF_RESKEY_pico=custom
+    Env OCF_RESKEY_pico_name=custom
     AgentRun validate-all OCF_ERR_CONFIGURED
 
 CASE "validate-all passes for unknown pico type with pico_port"
     Include prepare
-    Env OCF_RESKEY_pico=custom
+    Env OCF_RESKEY_pico_name=custom
     Env OCF_RESKEY_pico_port=9999
     AgentRun validate-all OCF_SUCCESS
 

@@ -35,18 +35,18 @@ teardown() { teardown_test_env; }
 }
 
 @test "validate-all passes for ec pico" {
-    OCF_RESKEY_pico="ec" run_ra validate-all
+    OCF_RESKEY_pico_name="ec" run_ra validate-all
     [ "$status" -eq 0 ]
 }
 
 @test "validate-all passes for unknown pico type when pico_port is set" {
-    OCF_RESKEY_pico="custom" OCF_RESKEY_pico_port="9999" run_ra validate-all
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="9999" run_ra validate-all
     [ "$status" -eq 0 ]
 }
 
 @test "validate-all fails for unknown pico type without pico_port" {
     # unknown pico names are accepted only when pico_port is set explicitly
-    OCF_RESKEY_pico="custom" run_ra validate-all
+    OCF_RESKEY_pico_name="custom" run_ra validate-all
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
@@ -102,22 +102,22 @@ teardown() { teardown_test_env; }
 }
 
 @test "validate-all fails when pico_port is not a positive integer" {
-    OCF_RESKEY_pico="custom" OCF_RESKEY_pico_port="abc" run_ra validate-all
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="abc" run_ra validate-all
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
-@test "validate-all fails when pico contains shell metacharacters" {
-    OCF_RESKEY_pico="platform;evil" run_ra validate-all
+@test "validate-all fails when pico_name contains shell metacharacters" {
+    OCF_RESKEY_pico_name="platform;evil" run_ra validate-all
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
-@test "validate-all fails when pico contains uppercase letters" {
-    OCF_RESKEY_pico="Platform" run_ra validate-all
+@test "validate-all fails when pico_name contains uppercase letters" {
+    OCF_RESKEY_pico_name="Platform" run_ra validate-all
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
-@test "validate-all fails when pico contains underscores" {
-    OCF_RESKEY_pico="my_pico" run_ra validate-all
+@test "validate-all fails when pico_name contains underscores" {
+    OCF_RESKEY_pico_name="my_pico" run_ra validate-all
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
@@ -136,13 +136,13 @@ teardown() { teardown_test_env; }
 
 @test "monitor returns OCF_NOT_RUNNING for ui when only platform is running" {
     set_pico_running platform
-    OCF_RESKEY_pico="ui" run_ra monitor
+    OCF_RESKEY_pico_name="ui" run_ra monitor
     [ "$status" -eq 7 ]
 }
 
 @test "monitor returns OCF_SUCCESS for ui when ui is running" {
     set_pico_running ui
-    OCF_RESKEY_pico="ui" run_ra monitor
+    OCF_RESKEY_pico_name="ui" run_ra monitor
     [ "$status" -eq 0 ]
 }
 
@@ -217,44 +217,44 @@ teardown() { teardown_test_env; }
 }
 
 @test "full lifecycle for ui pico" {
-    OCF_RESKEY_pico="ui" run_ra start
+    OCF_RESKEY_pico_name="ui" run_ra start
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="ui" run_ra monitor
+    OCF_RESKEY_pico_name="ui" run_ra monitor
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="ui" run_ra stop
+    OCF_RESKEY_pico_name="ui" run_ra stop
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="ui" run_ra monitor
+    OCF_RESKEY_pico_name="ui" run_ra monitor
     [ "$status" -eq 7 ]
 }
 
 @test "full lifecycle for ec pico" {
-    OCF_RESKEY_pico="ec" run_ra start
+    OCF_RESKEY_pico_name="ec" run_ra start
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="ec" run_ra monitor
+    OCF_RESKEY_pico_name="ec" run_ra monitor
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="ec" run_ra stop
+    OCF_RESKEY_pico_name="ec" run_ra stop
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="ec" run_ra monitor
+    OCF_RESKEY_pico_name="ec" run_ra monitor
     [ "$status" -eq 7 ]
 }
 
 @test "full lifecycle for custom pico with explicit pico_port" {
-    OCF_RESKEY_pico="custom" OCF_RESKEY_pico_port="9999" run_ra start
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="9999" run_ra start
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="custom" OCF_RESKEY_pico_port="9999" run_ra monitor
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="9999" run_ra monitor
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="custom" OCF_RESKEY_pico_port="9999" run_ra stop
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="9999" run_ra stop
     [ "$status" -eq 0 ]
 
-    OCF_RESKEY_pico="custom" OCF_RESKEY_pico_port="9999" run_ra monitor
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="9999" run_ra monitor
     [ "$status" -eq 7 ]
 }
 

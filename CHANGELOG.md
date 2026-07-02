@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.2] - 2026-07-02
+
+### Changed
+- Renamed `pico` parameter to `pico_name` for clarity; the value has always been a pico name, not a type
+
 ## [0.4.1] - 2026-07-01
 
 ### Fixed

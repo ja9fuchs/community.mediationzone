@@ -37,9 +37,9 @@ mediationzone.bats
  ✓ validate-all fails when mzsh_timeout is below minimum (9)
  ✓ validate-all passes when mzsh_timeout is at minimum (10)
  ✓ validate-all fails when pico_port is not a positive integer
- ✓ validate-all fails when pico contains shell metacharacters
- ✓ validate-all fails when pico contains uppercase letters
- ✓ validate-all fails when pico contains underscores
+ ✓ validate-all fails when pico_name contains shell metacharacters
+ ✓ validate-all fails when pico_name contains uppercase letters
+ ✓ validate-all fails when pico_name contains underscores
  ✓ monitor returns OCF_NOT_RUNNING when pico is stopped
  ✓ monitor returns OCF_SUCCESS when pico is running
  ✓ monitor returns OCF_NOT_RUNNING for ui when only platform is running
@@ -109,7 +109,7 @@ mediationzone: validate-all fails when java_home does not exist - OK.
 mediationzone: validate-all fails when java_home contains shell metacharacters - OK.
 mediationzone: validate-all fails when mzsh_timeout is not an integer - OK.
 mediationzone: validate-all fails when mzsh_timeout is below minimum - OK.
-mediationzone: validate-all fails when pico contains unsupported characters - OK.
+mediationzone: validate-all fails when pico_name contains unsupported characters - OK.
 mediationzone: validate-all fails for unknown pico type without pico_port - OK.
 mediationzone: validate-all passes for unknown pico type with pico_port - OK.
 mediationzone: monitor returns OCF_NOT_RUNNING when pico is stopped - OK.
