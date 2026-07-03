@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.7] - 2026-07-03
+
+### Fixed
+- Monitor: add `sleep 1` between retry attempts so back-to-back status calls do not
+  both land in the same transient failure window.
+
+### Changed
+- Corrected resource name in header comment (`rsc_platform` -> `rsc_mz_platform`).
+- `mzsh_timeout` longdesc: clarified that the timeout also applies to the pre-start
+  kill call that runs before startup.
+
 ## [0.4.6] - 2026-07-02
 
 ### Fixed

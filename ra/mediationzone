@@ -17,7 +17,7 @@
 #   OCF_RESKEY_mzsh_timeout - timeout in seconds for a single mzsh call
 #
 # Resource start order:
-#   rsc_vip_platform -> rsc_platform -> other containers (ui, ec, ...)
+#   rsc_vip_platform -> rsc_mz_platform -> other containers (ui, ec, ...)
 #
 # The platform container must bind to the IP that is defined in the pico.rcp.platform.host
 # container property. If this is a virtual IP, then this VIP must be UP when the platform
@@ -31,7 +31,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.6"
+mediationzone_version="0.4.7"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -118,7 +118,7 @@ to take effect.
 </parameter>
 <parameter name="mzsh_timeout" unique="0" required="0">
     <shortdesc lang="en">Timeout in seconds for a single mzsh call.</shortdesc>
-    <longdesc lang="en">Maximum time in seconds to wait for a single mzsh call (status, shutdown, or kill). Minimum 10. The stop action chains shutdown then kill on failure, so worst-case stop time is 2 x mzsh_timeout. If mzsh_timeout is too short, both shutdown and kill time out and the stop action fails - Pacemaker then fences the node to recover. Additionally, set the stop operation timeout on the cluster resource to at least 2 x mzsh_timeout + 60s.</longdesc>
+    <longdesc lang="en">Maximum time in seconds to wait for a single mzsh call (status, shutdown, kill, and the pre-start kill that runs before startup). Minimum 10. The stop action chains shutdown then kill on failure, so worst-case stop time is 2 x mzsh_timeout. If mzsh_timeout is too short, both shutdown and kill time out and the stop action fails - Pacemaker then fences the node to recover. Additionally, set the stop operation timeout on the cluster resource to at least 2 x mzsh_timeout + 60s.</longdesc>
     <content type="integer" default="${OCF_RESKEY_mzsh_timeout_default}" />
 </parameter>
 </parameters>
@@ -166,10 +166,12 @@ mediationzone_monitor() {
         case $rc in
             0)   ocf_log debug "${OCF_RESKEY_pico_name} is running"
                  return "$OCF_SUCCESS" ;;
-            2)   ocf_log info "${OCF_RESKEY_pico_name} is not running (attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
+            2)   ocf_log info "${OCF_RESKEY_pico_name} is not running (attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})"
+                 sleep 1 ;;
             124) ocf_exit_reason "${OCF_RESKEY_pico_name} status timed out"
                  return "$OCF_ERR_GENERIC" ;;
-            *)   ocf_log warn "${OCF_RESKEY_pico_name} status failed (mzsh rc=${rc}, attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})" ;;
+            *)   ocf_log warn "${OCF_RESKEY_pico_name} status failed (mzsh rc=${rc}, attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})"
+                 sleep 1 ;;
         esac
     done
     if [ "$rc" -eq 2 ]; then
