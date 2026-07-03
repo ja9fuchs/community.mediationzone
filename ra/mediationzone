@@ -165,6 +165,8 @@ mediationzone_monitor() {
     attempt=0
     # retry because pico status can transiently return not-running during normal operation
     while [ "$attempt" -le "$OCF_RESKEY_monitor_retries" ]; do
+        # sleep before retry, not after the last attempt
+        [ "$attempt" -gt 0 ] && sleep 1
         attempt=$((attempt + 1))
         timeout "$OCF_RESKEY_mzsh_timeout" \
             su - "$OCF_RESKEY_os_user" -c \
@@ -173,12 +175,10 @@ mediationzone_monitor() {
         case $rc in
             0)   ocf_log debug "${OCF_RESKEY_pico_name} is running"
                  return "$OCF_SUCCESS" ;;
-            2)   ocf_log info "${OCF_RESKEY_pico_name} is not running (attempt ${attempt}, retries ${OCF_RESKEY_monitor_retries})"
-                 sleep 1 ;;
+            2)   ocf_log info "${OCF_RESKEY_pico_name} is not running (attempt ${attempt}, retries ${OCF_RESKEY_monitor_retries})" ;;
             124) ocf_exit_reason "${OCF_RESKEY_pico_name} status timed out"
                  return "$OCF_ERR_GENERIC" ;;
-            *)   ocf_log warn "${OCF_RESKEY_pico_name} status failed (mzsh rc=${rc}, attempt ${attempt}, retries ${OCF_RESKEY_monitor_retries})"
-                 sleep 1 ;;
+            *)   ocf_log warn "${OCF_RESKEY_pico_name} status failed (mzsh rc=${rc}, attempt ${attempt}, retries ${OCF_RESKEY_monitor_retries})" ;;
         esac
     done
     if [ "$rc" -eq 2 ]; then
