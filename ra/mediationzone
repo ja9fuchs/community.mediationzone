@@ -31,7 +31,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.7"
+mediationzone_version="0.4.8"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -222,7 +222,7 @@ mediationzone_start() {
         return "$OCF_ERR_GENERIC"
     fi
     case $startup_out in
-        *"tarted with errors"*)
+        *[Ss]"tarted with errors"*)
             ocf_exit_reason "mzsh startup ${OCF_RESKEY_pico_name} started in degraded mode (codeserver only)"
             return "$OCF_ERR_GENERIC" ;;
         *"no such server process"*)
@@ -345,8 +345,7 @@ case "$__OCF_ACTION" in
         mediationzone_start
         ;;
     stop)
-        # validate-all intentionally skipped: stop must succeed even with broken config
-        # to allow the cluster to recover without fencing
+        mediationzone_validate || exit "$?"
         mediationzone_stop
         ;;
     monitor)

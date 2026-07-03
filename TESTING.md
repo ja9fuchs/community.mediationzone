@@ -53,6 +53,7 @@ mediationzone.bats
  ✓ stop is idempotent when pico already stopped
  ✓ stop leaves pico stopped after success
  ✓ stop escalates to mzsh kill when shutdown fails
+ ✓ stop fails with OCF_ERR_CONFIGURED when config is invalid
  ✓ full lifecycle: start, monitor running, stop, monitor stopped
  ✓ full lifecycle for ui pico
  ✓ full lifecycle for custom pico with explicit pico_port
@@ -69,7 +70,7 @@ mediationzone.bats
  ✓ help exits 0
  ✓ unknown action returns OCF_ERR_UNIMPLEMENTED
 
-49 tests, 0 failures
+50 tests, 0 failures
 ```
 
 
@@ -119,6 +120,7 @@ mediationzone: start brings pico from stopped to running - OK.
 mediationzone: start is idempotent when pico is already running - OK.
 mediationzone: stop brings pico from running to stopped - OK.
 mediationzone: stop is idempotent when pico is already stopped - OK.
+mediationzone: stop fails with OCF_ERR_CONFIGURED when config is invalid - OK.
 mediationzone: full lifecycle: start, monitor, stop, monitor - OK.
 OK.
 OK.

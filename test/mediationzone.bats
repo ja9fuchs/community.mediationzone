@@ -209,6 +209,12 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 0 ]  # mzsh kill succeeds (pico was running, pid file present)
 }
 
+@test "stop fails with OCF_ERR_CONFIGURED when config is invalid" {
+    set_pico_running platform
+    OCF_RESKEY_os_user="nosuchuser_mzonetest" run_ra stop
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
 # --- lifecycle ---
 
 @test "full lifecycle: start, monitor running, stop, monitor stopped" {
@@ -266,6 +272,7 @@ teardown() { teardown_test_env; }
     set_pico_running platform
     inject_slow status
     OCF_RESKEY_mzsh_timeout=2 run_ra monitor
+    [ "$status" -eq 1 ]  # OCF_ERR_GENERIC
     [[ "$output" == *"timed out"* ]]
 }
 

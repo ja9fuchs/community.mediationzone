@@ -128,10 +128,15 @@ template_start() {
 }
 
 template_stop() {
-    # validate-all is intentionally not called from stop. Stop must succeed
-    # even when the configuration is broken so Pacemaker can recover the
-    # resource without fencing the node.
-
+    # validate-all is called before stop (in the dispatch below), consistent with
+    # the OCF RA developer guide. A broken configuration means service calls in
+    # stop will also fail - validate surfaces the root cause immediately with
+    # OCF_ERR_CONFIGURED rather than obscuring it behind a generic service error.
+    # If the service binary is gone (OCF_ERR_INSTALLED), the same applies.
+    # Validate also matters for performance: if a stop call can time out (e.g.
+    # connecting to an unreachable service), validate fails in milliseconds
+    # instead of waiting out the full stop timeout before returning an error.
+    #
     # Idempotency: succeed immediately if already stopped.
     if ! template_check; then
         ocf_log info "template already stopped"
@@ -194,6 +199,7 @@ case "$__OCF_ACTION" in
         template_start
         ;;
     stop)
+        template_validate || exit "$?"
         template_stop
         ;;
     monitor)

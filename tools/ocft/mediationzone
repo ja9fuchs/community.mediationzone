@@ -157,6 +157,12 @@ CASE "stop is idempotent when pico is already stopped"
     Include prepare
     AgentRun stop OCF_SUCCESS
 
+CASE "stop fails with OCF_ERR_CONFIGURED when config is invalid"
+    Include prepare
+    AgentRun start
+    Env OCF_RESKEY_os_user=nosuchuser_mztest
+    AgentRun stop OCF_ERR_CONFIGURED
+
 # --- full lifecycle ---
 
 CASE "full lifecycle: start, monitor, stop, monitor"

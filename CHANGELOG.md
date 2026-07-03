@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.8] - 2026-07-03
+
+### Changed
+- Stop: call `validate-all` before stopping, consistent with the start action. Fails
+  fast with `OCF_ERR_CONFIGURED` when the configuration is broken rather than letting
+  mzsh calls fail with a less informative error.
+
 ## [0.4.7] - 2026-07-03
 
 ### Fixed
