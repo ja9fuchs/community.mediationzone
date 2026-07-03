@@ -47,6 +47,7 @@ mediationzone.bats
  ✓ start is idempotent when pico already running
  ✓ start fails when mzsh startup fails
  ✓ start fails when mzsh startup returns degraded state (started with errors)
+ ✓ start fails when mzsh startup returns no such server process
  ✓ start leaves pico running after success
  ✓ stop brings pico from running to stopped
  ✓ stop is idempotent when pico already stopped
@@ -58,6 +59,7 @@ mediationzone.bats
  ✓ monitor retries and returns OCF_SUCCESS after transient status failure
  ✓ monitor detects mzsh status timeout (rc=124)
  ✓ monitor returns OCF_ERR_GENERIC on unexpected status rc
+ ✓ stop returns success when kill returns rc=2 (pico already not running)
  ✓ stop returns OCF_ERR_GENERIC when shutdown and kill both fail
  ✓ start retries once on mzsh rc=104 and succeeds
  ✓ start fails when both startup attempts return mzsh rc=104
@@ -67,7 +69,7 @@ mediationzone.bats
  ✓ help exits 0
  ✓ unknown action returns OCF_ERR_UNIMPLEMENTED
 
-47 tests, 0 failures
+49 tests, 0 failures
 ```
 
 
