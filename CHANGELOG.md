@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.9] - 2026-07-03
+
+### Added
+- New parameter `monitor_retries` (default 1): number of times the monitor action retries
+  mzsh status after an initial failure before reporting the pico as not running or failed.
+  Applies only to the monitor action. Set to 0 to disable retries; increase if transient
+  status failures cause unwanted restarts in your environment.
+
 ## [0.4.8] - 2026-07-03
 
 ### Changed

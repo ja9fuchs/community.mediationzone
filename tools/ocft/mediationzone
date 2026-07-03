@@ -124,6 +124,16 @@ CASE "validate-all passes for unknown pico type with pico_port"
     Env OCF_RESKEY_pico_port=9999
     AgentRun validate-all OCF_SUCCESS
 
+CASE "validate-all fails when monitor_retries is not an integer"
+    Include prepare
+    Env OCF_RESKEY_monitor_retries=2x
+    AgentRun validate-all OCF_ERR_CONFIGURED
+
+CASE "validate-all passes when monitor_retries is 0 (no retries)"
+    Include prepare
+    Env OCF_RESKEY_monitor_retries=0
+    AgentRun validate-all OCF_SUCCESS
+
 # --- monitor ---
 
 CASE "monitor returns OCF_NOT_RUNNING when pico is stopped"

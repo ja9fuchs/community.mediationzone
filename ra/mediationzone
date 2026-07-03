@@ -14,7 +14,8 @@
 #   OCF_RESKEY_java_home    - JAVA_HOME directory
 #   OCF_RESKEY_pico_name    - name of the pico to manage
 #   OCF_RESKEY_pico_port    - web server port of the pico
-#   OCF_RESKEY_mzsh_timeout - timeout in seconds for a single mzsh call
+#   OCF_RESKEY_mzsh_timeout      - timeout in seconds for a single mzsh call
+#   OCF_RESKEY_monitor_retries   - number of mzsh status retries in the monitor action
 #
 # Resource start order:
 #   rsc_vip_platform -> rsc_mz_platform -> other containers (ui, ec, ...)
@@ -31,7 +32,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.8"
+mediationzone_version="0.4.9"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -44,6 +45,7 @@ OCF_RESKEY_java_home_default="/usr/lib/jvm/java-17-openjdk"
 OCF_RESKEY_pico_name_default="platform"
 OCF_RESKEY_pico_port_default=""
 OCF_RESKEY_mzsh_timeout_default=30
+OCF_RESKEY_monitor_retries_default=1
 
 # apply defaults for any parameter not set by Pacemaker
 : "${OCF_RESKEY_os_user:=${OCF_RESKEY_os_user_default}}"
@@ -52,6 +54,7 @@ OCF_RESKEY_mzsh_timeout_default=30
 : "${OCF_RESKEY_pico_name:=${OCF_RESKEY_pico_name_default}}"
 : "${OCF_RESKEY_pico_port:=${OCF_RESKEY_pico_port_default}}"
 : "${OCF_RESKEY_mzsh_timeout:=${OCF_RESKEY_mzsh_timeout_default}}"
+: "${OCF_RESKEY_monitor_retries:=${OCF_RESKEY_monitor_retries_default}}"
 
 # derive pico_port from pico type if not set explicitly
 if [ -z "$OCF_RESKEY_pico_port" ]; then
@@ -68,7 +71,6 @@ MEDIATIONZONE_MZSH_ENV="MZ_HOME=${OCF_RESKEY_mz_home} JAVA_HOME=${OCF_RESKEY_jav
 # back to the local pico RCP. Used for status/shutdown/kill but not startup: startup must route
 # through the remote platform RCP so the platform manages service initialization.
 MEDIATIONZONE_MZSH_LOCAL_ENV="${MEDIATIONZONE_MZSH_ENV} MZ_PLATFORM=http://localhost"
-MEDIATIONZONE_MONITOR_ATTEMPTS=2
 
 mediationzone_meta_data() {
     cat <<EOF
@@ -121,6 +123,11 @@ to take effect.
     <longdesc lang="en">Maximum time in seconds to wait for a single mzsh call (status, shutdown, kill, and the pre-start kill that runs before startup). Minimum 10. The stop action chains shutdown then kill on failure, so worst-case stop time is 2 x mzsh_timeout. If mzsh_timeout is too short, both shutdown and kill time out and the stop action fails - Pacemaker then fences the node to recover. Additionally, set the stop operation timeout on the cluster resource to at least 2 x mzsh_timeout + 60s.</longdesc>
     <content type="integer" default="${OCF_RESKEY_mzsh_timeout_default}" />
 </parameter>
+<parameter name="monitor_retries" unique="0" required="0">
+    <shortdesc lang="en">Number of mzsh status retries in the monitor action.</shortdesc>
+    <longdesc lang="en">How many times the monitor action retries mzsh status after an initial failure before reporting the pico as not running or failed. Applies only to the monitor action - start and stop are not affected. A value of 0 disables retries. Increase if transient status failures cause unwanted restarts in your environment. Minimum 0.</longdesc>
+    <content type="integer" default="${OCF_RESKEY_monitor_retries_default}" />
+</parameter>
 </parameters>
 <actions>
     <action name="start"        timeout="360s" />
@@ -157,7 +164,7 @@ mediationzone_check() {
 mediationzone_monitor() {
     attempt=0
     # retry because pico status can transiently return not-running during normal operation
-    while [ "$attempt" -lt "$MEDIATIONZONE_MONITOR_ATTEMPTS" ]; do
+    while [ "$attempt" -le "$OCF_RESKEY_monitor_retries" ]; do
         attempt=$((attempt + 1))
         timeout "$OCF_RESKEY_mzsh_timeout" \
             su - "$OCF_RESKEY_os_user" -c \
@@ -166,18 +173,18 @@ mediationzone_monitor() {
         case $rc in
             0)   ocf_log debug "${OCF_RESKEY_pico_name} is running"
                  return "$OCF_SUCCESS" ;;
-            2)   ocf_log info "${OCF_RESKEY_pico_name} is not running (attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})"
+            2)   ocf_log info "${OCF_RESKEY_pico_name} is not running (attempt ${attempt}, retries ${OCF_RESKEY_monitor_retries})"
                  sleep 1 ;;
             124) ocf_exit_reason "${OCF_RESKEY_pico_name} status timed out"
                  return "$OCF_ERR_GENERIC" ;;
-            *)   ocf_log warn "${OCF_RESKEY_pico_name} status failed (mzsh rc=${rc}, attempt ${attempt}/${MEDIATIONZONE_MONITOR_ATTEMPTS})"
+            *)   ocf_log warn "${OCF_RESKEY_pico_name} status failed (mzsh rc=${rc}, attempt ${attempt}, retries ${OCF_RESKEY_monitor_retries})"
                  sleep 1 ;;
         esac
     done
     if [ "$rc" -eq 2 ]; then
         return "$OCF_NOT_RUNNING"
     fi
-    ocf_exit_reason "${OCF_RESKEY_pico_name} status failed after ${MEDIATIONZONE_MONITOR_ATTEMPTS} attempts (mzsh rc=${rc})"
+    ocf_exit_reason "${OCF_RESKEY_pico_name} status failed after $((OCF_RESKEY_monitor_retries + 1)) attempts (mzsh rc=${rc})"
     return "$OCF_ERR_GENERIC"
 }
 
@@ -283,6 +290,10 @@ mediationzone_validate() {
     esac
     if ! ocf_is_decimal "$OCF_RESKEY_mzsh_timeout" || [ "$OCF_RESKEY_mzsh_timeout" -lt 10 ]; then
         ocf_exit_reason "mzsh_timeout \"${OCF_RESKEY_mzsh_timeout}\" must be 10 or greater"
+        return "$OCF_ERR_CONFIGURED"
+    fi
+    if ! ocf_is_decimal "$OCF_RESKEY_monitor_retries"; then
+        ocf_exit_reason "monitor_retries \"${OCF_RESKEY_monitor_retries}\" must be a non-negative integer"
         return "$OCF_ERR_CONFIGURED"
     fi
 

@@ -116,6 +116,16 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
+@test "validate-all fails when monitor_retries is not an integer" {
+    OCF_RESKEY_monitor_retries="2x" run_ra validate-all
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
+@test "validate-all passes when monitor_retries is 0 (no retries)" {
+    OCF_RESKEY_monitor_retries="0" run_ra validate-all
+    [ "$status" -eq 0 ]
+}
+
 # --- monitor ---
 
 @test "monitor returns OCF_NOT_RUNNING when pico is stopped" {
@@ -266,6 +276,13 @@ teardown() { teardown_test_env; }
     inject_fail status 1  # fail first attempt, state file intact for second
     run_ra monitor
     [ "$status" -eq 0 ]  # OCF_SUCCESS on retry
+}
+
+@test "monitor returns OCF_NOT_RUNNING with monitor_retries=0 (no retry)" {
+    set_pico_running platform
+    inject_fail status 1  # first and only attempt fails
+    OCF_RESKEY_monitor_retries=0 run_ra monitor
+    [ "$status" -eq 7 ]  # OCF_NOT_RUNNING - no retry attempted
 }
 
 @test "monitor detects mzsh status timeout (rc=124)" {

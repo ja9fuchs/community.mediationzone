@@ -39,6 +39,8 @@ mediationzone.bats
  ✓ validate-all fails when pico_name contains shell metacharacters
  ✓ validate-all fails when pico_name contains uppercase letters
  ✓ validate-all fails when pico_name contains underscores
+ ✓ validate-all fails when monitor_retries is not an integer
+ ✓ validate-all passes when monitor_retries is 0 (no retries)
  ✓ monitor returns OCF_NOT_RUNNING when pico is stopped
  ✓ monitor returns OCF_SUCCESS when pico is running
  ✓ monitor returns OCF_NOT_RUNNING for ui when only platform is running
@@ -58,6 +60,7 @@ mediationzone.bats
  ✓ full lifecycle for ui pico
  ✓ full lifecycle for custom pico with explicit pico_port
  ✓ monitor retries and returns OCF_SUCCESS after transient status failure
+ ✓ monitor returns OCF_NOT_RUNNING with monitor_retries=0 (no retry)
  ✓ monitor detects mzsh status timeout (rc=124)
  ✓ monitor returns OCF_ERR_GENERIC on unexpected status rc
  ✓ stop returns success when kill returns rc=2 (pico already not running)
@@ -70,7 +73,7 @@ mediationzone.bats
  ✓ help exits 0
  ✓ unknown action returns OCF_ERR_UNIMPLEMENTED
 
-50 tests, 0 failures
+53 tests, 0 failures
 ```
 
 
@@ -114,6 +117,8 @@ mediationzone: validate-all fails when mzsh_timeout is below minimum - OK.
 mediationzone: validate-all fails when pico_name contains unsupported characters - OK.
 mediationzone: validate-all fails for unknown pico type without pico_port - OK.
 mediationzone: validate-all passes for unknown pico type with pico_port - OK.
+mediationzone: validate-all fails when monitor_retries is not an integer - OK.
+mediationzone: validate-all passes when monitor_retries is 0 (no retries) - OK.
 mediationzone: monitor returns OCF_NOT_RUNNING when pico is stopped - OK.
 mediationzone: monitor returns OCF_SUCCESS when pico is running - OK.
 mediationzone: start brings pico from stopped to running - OK.
