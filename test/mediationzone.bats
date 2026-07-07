@@ -101,8 +101,18 @@ teardown() { teardown_test_env; }
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 
+@test "validate-all fails when pico_port exceeds maximum (65536)" {
+    OCF_RESKEY_pico_name="custom" OCF_RESKEY_pico_port="65536" run_ra validate-all
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
 @test "validate-all fails when pico_name contains shell metacharacters" {
     OCF_RESKEY_pico_name="platform;evil" run_ra validate-all
+    [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
+}
+
+@test "validate-all fails when pico_name starts with a hyphen" {
+    OCF_RESKEY_pico_name="-ec1" run_ra validate-all
     [ "$status" -eq 6 ]  # OCF_ERR_CONFIGURED
 }
 

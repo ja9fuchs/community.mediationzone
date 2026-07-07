@@ -113,6 +113,11 @@ CASE "validate-all fails when pico_name contains unsupported characters"
     Env OCF_RESKEY_pico_name=Platform
     AgentRun validate-all OCF_ERR_CONFIGURED
 
+CASE "validate-all fails when pico_name starts with a hyphen"
+    Include prepare
+    Env OCF_RESKEY_pico_name=-ec1
+    AgentRun validate-all OCF_ERR_CONFIGURED
+
 CASE "validate-all fails for unknown pico type without pico_port"
     Include prepare
     Env OCF_RESKEY_pico_name=custom
@@ -123,6 +128,12 @@ CASE "validate-all passes for unknown pico type with pico_port"
     Env OCF_RESKEY_pico_name=custom
     Env OCF_RESKEY_pico_port=9999
     AgentRun validate-all OCF_SUCCESS
+
+CASE "validate-all fails when pico_port exceeds maximum"
+    Include prepare
+    Env OCF_RESKEY_pico_name=custom
+    Env OCF_RESKEY_pico_port=65536
+    AgentRun validate-all OCF_ERR_CONFIGURED
 
 CASE "validate-all fails when monitor_retries is not an integer"
     Include prepare

@@ -32,7 +32,7 @@
 # For the priority to take effect, the cluster property priority-fencing-delay must be
 # set to a value greater than 0 (e.g. 30s).
 #
-mediationzone_version="0.4.9"
+mediationzone_version="0.5.2"
 
 : "${OCF_FUNCTIONS_DIR:=${OCF_ROOT}/lib/heartbeat}"
 # shellcheck source=/dev/null
@@ -289,11 +289,11 @@ mediationzone_validate() {
             return "$OCF_ERR_CONFIGURED" ;;
     esac
     if ! ocf_is_decimal "$OCF_RESKEY_mzsh_timeout" || [ "$OCF_RESKEY_mzsh_timeout" -lt 10 ]; then
-        ocf_exit_reason "mzsh_timeout \"${OCF_RESKEY_mzsh_timeout}\" must be 10 or greater"
+        ocf_exit_reason "mzsh_timeout \"${OCF_RESKEY_mzsh_timeout}\" is invalid (minimum 10)"
         return "$OCF_ERR_CONFIGURED"
     fi
     if ! ocf_is_decimal "$OCF_RESKEY_monitor_retries"; then
-        ocf_exit_reason "monitor_retries \"${OCF_RESKEY_monitor_retries}\" must be a non-negative integer"
+        ocf_exit_reason "monitor_retries \"${OCF_RESKEY_monitor_retries}\" is not a non-negative integer"
         return "$OCF_ERR_CONFIGURED"
     fi
 
@@ -313,6 +313,9 @@ mediationzone_validate() {
 
     # validate pico name and port
     case "$OCF_RESKEY_pico_name" in
+        -*)
+            ocf_exit_reason "pico_name \"${OCF_RESKEY_pico_name}\" must not start with a hyphen"
+            return "$OCF_ERR_CONFIGURED" ;;
         *[!a-z0-9-]*)
             ocf_exit_reason "pico_name \"${OCF_RESKEY_pico_name}\" contains unsupported characters"
             return "$OCF_ERR_CONFIGURED" ;;
@@ -326,8 +329,10 @@ mediationzone_validate() {
             fi ;;
     esac
     if [ -n "$OCF_RESKEY_pico_port" ] && \
-       { ! ocf_is_decimal "$OCF_RESKEY_pico_port" || [ "$OCF_RESKEY_pico_port" -le 0 ]; }; then
-        ocf_exit_reason "pico_port \"${OCF_RESKEY_pico_port}\" must be a positive integer"
+       { ! ocf_is_decimal "$OCF_RESKEY_pico_port" || \
+         [ "$OCF_RESKEY_pico_port" -le 0 ] || \
+         [ "$OCF_RESKEY_pico_port" -gt 65535 ]; }; then
+        ocf_exit_reason "pico_port \"${OCF_RESKEY_pico_port}\" must be a valid port number (1-65535)"
         return "$OCF_ERR_CONFIGURED"
     fi
     return "$OCF_SUCCESS"

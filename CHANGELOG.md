@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.5.2] - 2026-07-07
+
+### Removed
+- `reload` action: the OCF 1.1 `reloadable` parameter attribute and `reload-agent` action
+  that enable automatic reload on parameter change are not in the OCF 1.0 DTD shipped with
+  RHEL 9 resource-agents. pcs rejects metadata containing `reloadable="1"` without
+  `--force`. Removed to keep the RA installable out of the box.
+- `monitor_retries` silent override introduced in 0.4.10: without reload, `mzsh_timeout`
+  and `monitor_retries` behave the same as all other parameters - a wrong value during any
+  update causes stop to fail via validate, the same as `os_user` or `mz_home`. Consistent
+  hard validation across all parameters; no special-casing.
+
+## [0.4.10] - 2026-07-07
+
+### Fixed
+- Validate: reject `pico_port` values above 65535. TCP port numbers are a 16-bit protocol
+  field; values like 90096 silently passed validation but the pico web server would fail
+  to bind on startup.
+- Validate: reject `pico_name` values starting with a hyphen. A leading hyphen causes
+  mzsh to parse the pico name as a command-line flag (e.g. `mzsh status -q -ec1`).
+- Monitor: default `monitor_retries` to 0 if the value is non-decimal at the top of the
+  monitor action. Validate catches invalid values before start/stop, but monitor does not
+  call validate; a non-integer value would cause a shell syntax error in the while
+  condition. Clamping ensures monitor always returns a status rather than erroring out.
+
 ## [0.4.9] - 2026-07-03
 
 ### Added
